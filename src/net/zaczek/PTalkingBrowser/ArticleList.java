@@ -26,7 +26,7 @@ public class ArticleList extends ListActivity {
 	
 	private static final int ABOUT_ID = 1;
 	private static final int EXIT_ID = 2;
-	private ArrayAdapter<String> adapter;
+	private ArrayAdapter<ArticleRef> adapter;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -43,8 +43,8 @@ public class ArticleList extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, Article.class);
-		String url = adapter.getItem(position);
-		i.putExtra("url", url);
+		ArticleRef a = adapter.getItem(position);
+		i.putExtra("url", a.url);
 		startActivity(i);
 	}
 
@@ -56,11 +56,27 @@ public class ArticleList extends ListActivity {
 	}
 	
 	private FillDataTask task;
-	ArrayList<String> articles;
+	
+	private class ArticleRef
+	{
+		public ArticleRef(String url, String text) {
+			this.url = url;
+			this.text = text;
+		}
+		
+		public String url;
+		public String text;
+		
+		@Override
+		public String toString() {
+			return text;
+		}
+	}
 	
 	private class FillDataTask extends AsyncTask<Void, Void, Void> {
 		private String msg;
 		private String url;
+		ArrayList<ArticleRef> articles;
 		
 		public FillDataTask(String url) {
 			this.url = url;
@@ -75,13 +91,13 @@ public class ArticleList extends ListActivity {
 		@Override
 		protected Void doInBackground(Void... params) {
 			try {
-				articles = new ArrayList<String>();
+				articles = new ArrayList<ArticleRef>();
 				
 				Document doc = Jsoup.connect(url).get();
 				Elements links = doc.select("h1 a");
 
 				for(Element lnk : links) {
-					articles.add(lnk.attr("abs:href"));
+					articles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
 				}
 				
 			} catch (Exception ex) {
@@ -99,7 +115,7 @@ public class ArticleList extends ListActivity {
 			}
 			
 			task = null;
-			adapter = new ArrayAdapter<String>(ArticleList.this, android.R.layout.simple_list_item_1, articles);
+			adapter = new ArrayAdapter<ArticleRef>(ArticleList.this, android.R.layout.simple_list_item_1, articles);
 			setListAdapter(adapter);
 			
 			super.onPostExecute(result);

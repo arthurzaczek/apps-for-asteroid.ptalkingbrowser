@@ -13,7 +13,10 @@
 				<category android:name="parrot.CATEGORY" />
 			</intent-filter>
 		</activity>
-		<activity android:name=".ArticleList" android:label="Browser"
+		<activity android:name=".ArticleList" android:label="Article List"
+			android:icon="@drawable/overview_icon">
+		</activity>
+		<activity android:name=".Article" android:label="Article"
 			android:icon="@drawable/overview_icon">
 		</activity>
 		<activity android:name=".About" android:label="About">
