@@ -1,17 +1,15 @@
 package net.zaczek.PTalkingBrowser;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-
+import net.zaczek.PTalkingBrowser.Data.DataManager;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
 
+import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -26,10 +24,13 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelectedListener {
 	private static final String TAG = "PTalkingBrowser";
 
-	private static final int ABOUT_ID = 1;
-	private static final int EXIT_ID = 2;
+	private static final int SYNC_ID = 1;
+	private static final int ABOUT_ID = 2;
+	private static final int EXIT_ID = 3;
+
+	private static final int DLG_WAIT = 1;
 	
-	private ArrayAdapter<String> adapter;
+	private ArrayAdapter<UrlRef> adapter;
 	private ParrotTTSPlayer mTTSPlayer;
 	/** Called when the activity is first created. */
 	@Override
@@ -46,8 +47,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	public void onItemSelected(AdapterView<?> adapterView, View view,
 			int pos, long id) {
 		try {
-			String url = adapter.getItem(pos);
-			mTTSPlayer.play(url);
+			mTTSPlayer.play(adapter.getItem(pos).text);
 		} catch (Exception ex) {
 			Log.e(TAG, ex.toString());
 		}
@@ -61,35 +61,14 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, ArticleList.class);
-		String url = adapter.getItem(position);
+		String url = adapter.getItem(position).url;
 		i.putExtra("url", url);
 		startActivity(i);
 	}
 
 	private void fillData() {
 		try {
-			ArrayList<String> urls = new ArrayList<String>();
-			File root = Environment.getExternalStorageDirectory();
-			File dir = new File(root, "PTalkingBrowser");
-			dir.mkdir();
-			File file = new File(dir, "urls.txt");
-			FileReader reader = new FileReader(file);
-			try {
-				BufferedReader in = new BufferedReader(reader);
-				while (true) {
-					String url = in.readLine();
-					if (url == null)
-						break;
-					url = url.trim();
-					if (TextUtils.isEmpty(url))
-						continue;
-					urls.add(url);
-				}
-			} finally {
-				reader.close();
-			}
-			
-			adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, urls);
+			adapter = new ArrayAdapter<UrlRef>(this, android.R.layout.simple_list_item_1, DataManager.readUrls());
 			setListAdapter(adapter);
 		} catch (Exception ex) {
 			Toast.makeText(this, ex.toString(), Toast.LENGTH_LONG).show();
@@ -99,6 +78,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
+		menu.add(0, SYNC_ID, 0, "Sync");
 		menu.add(0, ABOUT_ID, 0, "About");
 		menu.add(0, EXIT_ID, 0, "Exit");
 		return true;
@@ -108,6 +88,9 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		int itemId = item.getItemId();
 		switch (itemId) {
+		case SYNC_ID:
+			sync();
+			break;
 		case ABOUT_ID:
 			startActivity(new Intent(this, About.class));
 			return true;
@@ -118,6 +101,59 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 
 		return super.onMenuItemSelected(featureId, item);
 	}
+	
+	private class SyncTask extends AsyncTask<Void, Void, Void> {
+		private String msg;
+
+		@Override
+		protected void onPreExecute() {
+			showDialog(DLG_WAIT);
+			super.onPreExecute();
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			try {
+				DataManager.downloadUrls();
+			} catch (Exception ex) {
+				msg = ex.toString();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			dismissDialog(DLG_WAIT);
+			if (!TextUtils.isEmpty(msg)) {
+				Toast.makeText(Main.this, msg, Toast.LENGTH_SHORT).show();
+			}
+			fillData();
+			syncTask = null;
+			super.onPostExecute(result);
+		}
+	}
+
+	private SyncTask syncTask;
+
+	private void sync() {
+		Log.d(TAG, "Syncing urls");
+		if (syncTask == null) {
+			syncTask = new SyncTask();
+			syncTask.execute();
+		}
+	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case DLG_WAIT:
+			ProgressDialog pDialog = new ProgressDialog(this);
+			pDialog.setMessage("Syncing Urls");
+			return pDialog;
+		}
+		return null;
+	}
+
 	
 	@Override
 	public void onTTSFinished() {
