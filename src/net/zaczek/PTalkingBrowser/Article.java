@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -75,7 +76,6 @@ public class Article extends Activity implements ParrotTTSObserver {
 		wl.release();
 		super.onPause();
 	}
-
 
 	private void fillData(String url) {
 		if (task == null) {
@@ -189,6 +189,29 @@ public class Article extends Activity implements ParrotTTSObserver {
 		return super.onMenuItemSelected(featureId, item);
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+			am.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+			return true;
+		case KeyEvent.KEYCODE_DPAD_UP:
+			am.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+			return true;
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+		case KeyEvent.KEYCODE_MEDIA_NEXT:
+			return true;
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+		case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+			return true;
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+			return true;
+		default:
+			return super.onKeyDown(keyCode, event);
+		}
+	}
+	
 	@Override
 	public void onTTSFinished() {
 	}
