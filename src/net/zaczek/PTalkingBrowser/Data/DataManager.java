@@ -11,7 +11,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
-import net.zaczek.PTalkingBrowser.UrlRef;
+import net.zaczek.PTalkingBrowser.WebSiteRef;
 
 import android.os.Environment;
 import au.com.bytecode.opencsv.CSVReader;
@@ -69,21 +69,29 @@ public class DataManager {
 		return result;
 	}
 
-	public static ArrayList<UrlRef> readUrls() throws IOException {
-		final ArrayList<UrlRef> result = new ArrayList<UrlRef>();
-		final FileReader sr = openRead("urls.csv");
+	public static ArrayList<WebSiteRef> readWebSites() throws IOException {
+		final ArrayList<WebSiteRef> result = new ArrayList<WebSiteRef>();
+		final FileReader sr = openRead("websites.csv");
 		final CSVReader reader = new CSVReader(sr);
 	    String [] line;
 	    reader.readNext(); // skip first line
 	    while ((line = reader.readNext()) != null) {
-	    	result.add(new UrlRef(line[1], line[0]));
+	    	final WebSiteRef url = new WebSiteRef();
+	    	url.text = line[0];
+	    	url.url = line[1];
+	    	url.link_selector = line[2];
+	    	url.article_selector = line[3];
+	    	if(line.length > 4) {
+	    		url.readmore_selector = line[4];
+	    	}
+	    	result.add(url);
 	    }
 		return result;
 	}
 
-	public static void downloadUrls() throws IOException {
+	public static void downloadWebSites() throws IOException {
 		final StringBuffer urls = downloadText(new URL("https://docs.google.com/spreadsheet/pub?key=0Au6e93kxiTMhdGdUVmZvdEdZcHdvaVBZUlp0WFpYU2c&single=true&gid=0&output=csv"));
-		final OutputStreamWriter sw = openWrite("urls.csv", false);
+		final OutputStreamWriter sw = openWrite("websites.csv", false);
 		try {
 			sw.write(urls.toString());
 		} finally {

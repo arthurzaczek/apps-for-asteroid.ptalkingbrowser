@@ -33,8 +33,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 	private StringBuilder text;
 	private ArrayList<ArticleRef> moreArticles;
-	private ArrayList<String> sentences;
-	private int mPosition = 0;
+	private WebSiteRef webSite;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -43,11 +42,12 @@ public class Article extends Activity implements ParrotTTSObserver {
 		setContentView(R.layout.article);
 
 		txtArticle = (TextView) findViewById(R.id.txtArticle);
-		
+
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
 
 		Intent intent = getIntent();
 		String url = intent.getStringExtra("url");
+		webSite = intent.getParcelableExtra("website");
 		fillData(url);
 	}
 
@@ -81,9 +81,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 		protected Void doInBackground(Void... params) {
 			try {
 				Document doc = Jsoup.connect(url).get();
-				String selector = "div[id=storyText] h1, div[id=storyText] h2, div[id=storyText] p:not([class=readMore])";
-
-				Elements elements = doc.select(selector);
+				Elements elements = doc.select(webSite.article_selector);
 				for (Element e : elements) {
 					text.append(e.text());
 					if (text.charAt(text.length() - 1) != '.') {
@@ -93,10 +91,11 @@ public class Article extends Activity implements ParrotTTSObserver {
 				}
 
 				// More Articles
-				String moreSelector = "p[class=readMore] a";
-				Elements links = doc.select(moreSelector);
-				for (Element lnk : links) {
-					moreArticles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
+				if (!TextUtils.isEmpty(webSite.readmore_selector)) {
+					Elements links = doc.select(webSite.readmore_selector);
+					for (Element lnk : links) {
+						moreArticles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
+					}
 				}
 			} catch (Exception ex) {
 				msg = ex.toString();
@@ -115,29 +114,15 @@ public class Article extends Activity implements ParrotTTSObserver {
 			task = null;
 			txtArticle.setText(text);
 
-			split(text);
 			play();
 
 			super.onPostExecute(result);
 		}
 	}
-	
-	private void play() {
-		if(sentences != null && sentences.size() > mPosition) {
-			mTTSPlayer.play(sentences.get(mPosition));
-		}
-	}
 
-	private void split(StringBuilder text) {
-		sentences = new ArrayList<String>();
-		for (String s : TextUtils.split(text.toString(), ".")) {
-			if (s.length() > ParrotTTSPlayer.MAX_LENGHT) {
-				for (String k : TextUtils.split(s, ",")) {
-					sentences.add(k);
-				}
-			} else {
-				sentences.add(s);
-			}
+	private void play() {
+		if (text != null) {
+			mTTSPlayer.play(text.toString());
 		}
 	}
 
@@ -177,15 +162,13 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 		return super.onMenuItemSelected(featureId, item);
 	}
-	
+
 	@Override
 	public void onTTSFinished() {
-		mPosition++;
-		play();
 	}
 
 	@Override
 	public void onTTSAborted() {
-		
+
 	}
 }

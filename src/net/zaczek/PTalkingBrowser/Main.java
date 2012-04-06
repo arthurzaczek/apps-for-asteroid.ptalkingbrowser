@@ -30,7 +30,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 
 	private static final int DLG_WAIT = 1;
 	
-	private ArrayAdapter<UrlRef> adapter;
+	private ArrayAdapter<WebSiteRef> adapter;
 	private ParrotTTSPlayer mTTSPlayer;
 	/** Called when the activity is first created. */
 	@Override
@@ -61,14 +61,14 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, ArticleList.class);
-		String url = adapter.getItem(position).url;
-		i.putExtra("url", url);
+		WebSiteRef website = adapter.getItem(position);
+		i.putExtra("website", website);
 		startActivity(i);
 	}
 
 	private void fillData() {
 		try {
-			adapter = new ArrayAdapter<UrlRef>(this, android.R.layout.simple_list_item_1, DataManager.readUrls());
+			adapter = new ArrayAdapter<WebSiteRef>(this, android.R.layout.simple_list_item_1, DataManager.readWebSites());
 			setListAdapter(adapter);
 		} catch (Exception ex) {
 			Toast.makeText(this, ex.toString(), Toast.LENGTH_LONG).show();
@@ -114,7 +114,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 		@Override
 		protected Void doInBackground(Void... params) {
 			try {
-				DataManager.downloadUrls();
+				DataManager.downloadWebSites();
 			} catch (Exception ex) {
 				msg = ex.toString();
 			}
@@ -136,7 +136,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	private SyncTask syncTask;
 
 	private void sync() {
-		Log.d(TAG, "Syncing urls");
+		Log.d(TAG, "Syncing websites");
 		if (syncTask == null) {
 			syncTask = new SyncTask();
 			syncTask.execute();
@@ -148,7 +148,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 		switch (id) {
 		case DLG_WAIT:
 			ProgressDialog pDialog = new ProgressDialog(this);
-			pDialog.setMessage("Syncing Urls");
+			pDialog.setMessage("Syncing WebSites");
 			return pDialog;
 		}
 		return null;

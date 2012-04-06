@@ -23,7 +23,6 @@ import com.parrot.hsti.router.SystemEvt;
 
 /**
  * Class providing a TTS player interface.
- * At the moment, it handles string length as Parrot TTS only properly deals with 150-character strings. This feature may be removed after further TTS' enhancements.
  * @author jlepocher
  */
 public class ParrotTTSPlayer implements SysListener, EvtListener

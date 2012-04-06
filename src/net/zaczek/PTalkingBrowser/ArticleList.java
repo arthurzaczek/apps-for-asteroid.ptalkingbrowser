@@ -36,6 +36,8 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 	private static final int EXIT_ID = 2;
 	private ArrayAdapter<ArticleRef> adapter;
 	private ParrotTTSPlayer mTTSPlayer;
+	
+	private WebSiteRef webSite;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -44,12 +46,12 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 		setContentView(R.layout.articlelist);
 
 		Intent intent = getIntent();
-		String url = intent.getStringExtra("url");
+		webSite = intent.getParcelableExtra("website");
 		
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		getListView().setOnItemSelectedListener(this);
 
-		fillData(url);
+		fillData();
 	}
 	
 	@Override
@@ -72,13 +74,14 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, Article.class);
 		ArticleRef a = adapter.getItem(position);
-		i.putExtra("url", a.url);
+		i.putExtra("url", a.url);		
+		i.putExtra("website", webSite);
 		startActivity(i);
 	}
 
-	private void fillData(String url) {
+	private void fillData() {
 		if (task == null) {
-			task = new FillDataTask(url);
+			task = new FillDataTask(webSite.url);
 			task.execute();
 		}
 	}
@@ -106,9 +109,7 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 				articles = new ArrayList<ArticleRef>();
 
 				Document doc = Jsoup.connect(url).get();
-				String selector = "h1 a, h2 a";
-
-				Elements links = doc.select(selector);
+				Elements links = doc.select(webSite.link_selector);
 				for (Element lnk : links) {
 					articles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
 				}
