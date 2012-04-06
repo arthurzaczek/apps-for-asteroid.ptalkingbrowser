@@ -2,10 +2,10 @@ package net.zaczek.PTalkingBrowser;
 
 import java.util.ArrayList;
 
+import net.zaczek.PTalkingBrowser.Data.DataManager;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -80,7 +80,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 		@Override
 		protected Void doInBackground(Void... params) {
 			try {
-				Document doc = Jsoup.connect(url).get();
+				Document doc = DataManager.jsoupConnect(url).get();
 				Elements elements = doc.select(webSite.article_selector);
 				for (Element e : elements) {
 					text.append(e.text());

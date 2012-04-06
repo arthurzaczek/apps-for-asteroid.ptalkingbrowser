@@ -2,10 +2,10 @@ package net.zaczek.PTalkingBrowser;
 
 import java.util.ArrayList;
 
+import net.zaczek.PTalkingBrowser.Data.DataManager;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -108,7 +108,7 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 			try {
 				articles = new ArrayList<ArticleRef>();
 
-				Document doc = Jsoup.connect(url).get();
+				Document doc = DataManager.jsoupConnect(url).get();
 				Elements links = doc.select(webSite.link_selector);
 				for (Element lnk : links) {
 					articles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));

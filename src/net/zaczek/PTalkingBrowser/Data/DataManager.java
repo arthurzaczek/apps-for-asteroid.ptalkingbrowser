@@ -11,6 +11,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
+import org.jsoup.Jsoup;
+
 import net.zaczek.PTalkingBrowser.WebSiteRef;
 
 import android.os.Environment;
@@ -67,6 +69,12 @@ public class DataManager {
 		}
 		rd.close();
 		return result;
+	}
+	
+	public static org.jsoup.Connection jsoupConnect(String url) {
+		return Jsoup.connect(url)
+			.timeout(TIMEOUT)
+			.userAgent("Mozilla/5.0 (Linux; U; Android 1.5; AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1");
 	}
 
 	public static ArrayList<WebSiteRef> readWebSites() throws IOException {
