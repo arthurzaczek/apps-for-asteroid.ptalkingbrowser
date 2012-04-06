@@ -55,6 +55,20 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 	}
 	
 	@Override
+	protected void onResume() {
+		if(mTTSPlayer != null) mTTSPlayer.destroy();
+		mTTSPlayer = new ParrotTTSPlayer(this, this);
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause() {
+		mTTSPlayer.destroy();
+		super.onPause();
+	}
+
+	
+	@Override
 	public void onItemSelected(AdapterView<?> adapterView, View view,
 			int pos, long id) {
 		try {

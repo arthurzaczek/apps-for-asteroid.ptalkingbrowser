@@ -13,9 +13,13 @@ import org.jsoup.select.Elements;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +34,8 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 	private TextView txtArticle;
 	private ParrotTTSPlayer mTTSPlayer = null;
+	private AudioManager am;
+	private WakeLock wl;
 
 	private StringBuilder text;
 	private ArrayList<ArticleRef> moreArticles;
@@ -40,16 +46,36 @@ public class Article extends Activity implements ParrotTTSObserver {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.article);
+		
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "ListenToPageAndStayAwake");
 
 		txtArticle = (TextView) findViewById(R.id.txtArticle);
 
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
+		am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
 		Intent intent = getIntent();
 		String url = intent.getStringExtra("url");
 		webSite = intent.getParcelableExtra("website");
 		fillData(url);
 	}
+	
+	@Override
+	protected void onResume() {
+		if(mTTSPlayer != null) mTTSPlayer.destroy();
+		mTTSPlayer = new ParrotTTSPlayer(this, this);
+		wl.acquire();
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause() {
+		mTTSPlayer.destroy();
+		wl.release();
+		super.onPause();
+	}
+
 
 	private void fillData(String url) {
 		if (task == null) {
