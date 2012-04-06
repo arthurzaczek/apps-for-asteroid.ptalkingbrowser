@@ -28,11 +28,14 @@ import com.parrot.hsti.router.SystemEvt;
  */
 public class ParrotTTSPlayer implements SysListener, EvtListener
 {
+	public static final int	MAX_LENGHT				 = 150;
+	
 	private static final String TAG = ParrotTTSPlayer.class.getSimpleName();
 	private static final String TTS_FILE_DIRECTORY_PATH = "/tmp/ptalkingbrowser/tts";
 	private static final String TTS_FILE_PATH = TTS_FILE_DIRECTORY_PATH + "/file.tts";
 	private static final int	MSG_PLAY_MESSAGE	 = 0;
 	private static final int	BEEP_NO				 = 0;
+	
 
 	private HSTIInterface		mHSTI				= null;
 	private boolean 			mHSTIReady			= false;

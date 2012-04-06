@@ -2,6 +2,9 @@ package net.zaczek.PTalkingBrowser;
 
 import java.util.ArrayList;
 
+import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
+import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,20 +17,26 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemSelectedListener;
 
-public class ArticleList extends ListActivity {
+public class ArticleList extends ListActivity implements ParrotTTSObserver, OnItemSelectedListener {
+	private static final String TAG = "PTalkingBrowser";
+
 	private static final int DLG_WAIT = 1;
-	
+
 	private static final int ABOUT_ID = 1;
 	private static final int EXIT_ID = 2;
 	private ArrayAdapter<ArticleRef> adapter;
-	
+	private ParrotTTSPlayer mTTSPlayer;
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -37,9 +46,28 @@ public class ArticleList extends ListActivity {
 		Intent intent = getIntent();
 		String url = intent.getStringExtra("url");
 		
+		mTTSPlayer = new ParrotTTSPlayer(this, this);
+		getListView().setOnItemSelectedListener(this);
+
 		fillData(url);
 	}
 	
+	@Override
+	public void onItemSelected(AdapterView<?> adapterView, View view,
+			int pos, long id) {
+		try {
+			ArticleRef a = adapter.getItem(pos);
+			mTTSPlayer.play(a.text);
+		} catch (Exception ex) {
+			Log.e(TAG, ex.toString());
+		}
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> arg0) {
+
+	}
+
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, Article.class);
@@ -54,74 +82,58 @@ public class ArticleList extends ListActivity {
 			task.execute();
 		}
 	}
-	
+
 	private FillDataTask task;
-	
-	private class ArticleRef
-	{
-		public ArticleRef(String url, String text) {
-			this.url = url;
-			this.text = text;
-		}
-		
-		public String url;
-		public String text;
-		
-		@Override
-		public String toString() {
-			return text;
-		}
-	}
-	
+
 	private class FillDataTask extends AsyncTask<Void, Void, Void> {
 		private String msg;
 		private String url;
 		ArrayList<ArticleRef> articles;
-		
+
 		public FillDataTask(String url) {
 			this.url = url;
 		}
-		
+
 		@Override
 		protected void onPreExecute() {
 			showDialog(DLG_WAIT);
 			super.onPreExecute();
 		}
-		
+
 		@Override
 		protected Void doInBackground(Void... params) {
 			try {
 				articles = new ArrayList<ArticleRef>();
-				
-				Document doc = Jsoup.connect(url).get();
-				Elements links = doc.select("h1 a");
 
-				for(Element lnk : links) {
+				Document doc = Jsoup.connect(url).get();
+				String selector = "h1 a, h2 a";
+
+				Elements links = doc.select(selector);
+				for (Element lnk : links) {
 					articles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
 				}
-				
 			} catch (Exception ex) {
 				msg = ex.toString();
 			}
 			return null;
 		}
-		
+
 		@Override
 		protected void onPostExecute(Void result) {
 			dismissDialog(DLG_WAIT);
-			
+
 			if (!TextUtils.isEmpty(msg)) {
 				Toast.makeText(ArticleList.this, msg, Toast.LENGTH_SHORT).show();
 			}
-			
+
 			task = null;
 			adapter = new ArrayAdapter<ArticleRef>(ArticleList.this, android.R.layout.simple_list_item_1, articles);
 			setListAdapter(adapter);
-			
+
 			super.onPostExecute(result);
 		}
 	}
-	
+
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		ProgressDialog dialog;
@@ -135,7 +147,7 @@ public class ArticleList extends ListActivity {
 		}
 		return dialog;
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -157,5 +169,15 @@ public class ArticleList extends ListActivity {
 		}
 
 		return super.onMenuItemSelected(featureId, item);
+	}
+	
+	@Override
+	public void onTTSFinished() {
+		
+	}
+
+	@Override
+	public void onTTSAborted() {
+		
 	}
 }
