@@ -6,6 +6,7 @@ import net.zaczek.PTalkingBrowser.Data.DataManager;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
 
+import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -21,6 +22,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +30,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class Article extends Activity implements ParrotTTSObserver {
+	private static final String TAG = "PTalkingBrowser";
+
 	private static final int DLG_WAIT = 1;
 
 	private static final int ABOUT_ID = 1;
@@ -47,9 +51,10 @@ public class Article extends Activity implements ParrotTTSObserver {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.article);
-		
+
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "ListenToPageAndStayAwake");
+		wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK,
+				"ListenToPageAndStayAwake");
 
 		txtArticle = (TextView) findViewById(R.id.txtArticle);
 
@@ -61,15 +66,16 @@ public class Article extends Activity implements ParrotTTSObserver {
 		webSite = intent.getParcelableExtra("website");
 		fillData(url);
 	}
-	
+
 	@Override
 	protected void onResume() {
-		if(mTTSPlayer != null) mTTSPlayer.destroy();
+		if (mTTSPlayer != null)
+			mTTSPlayer.destroy();
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		wl.acquire();
 		super.onResume();
 	}
-	
+
 	@Override
 	protected void onPause() {
 		mTTSPlayer.destroy();
@@ -106,25 +112,33 @@ public class Article extends Activity implements ParrotTTSObserver {
 		@Override
 		protected Void doInBackground(Void... params) {
 			try {
-				Document doc = DataManager.jsoupConnect(url).get();
-				Elements elements = doc.select(webSite.article_selector);
-				for (Element e : elements) {
-					text.append(e.text());
-					if (text.charAt(text.length() - 1) != '.') {
-						text.append(".");
+				Response response = DataManager.jsoupConnect(url).execute();
+				int status = response.statusCode();
+				if (status == 200) {
+					Document doc = response.parse();
+					Elements elements = doc.select(webSite.article_selector);
+					for (Element e : elements) {
+						text.append(e.text());
+						if (text.charAt(text.length() - 1) != '.') {
+							text.append(".");
+						}
+						text.append("\n");
 					}
-					text.append("\n");
-				}
 
-				// More Articles
-				if (!TextUtils.isEmpty(webSite.readmore_selector)) {
-					Elements links = doc.select(webSite.readmore_selector);
-					for (Element lnk : links) {
-						moreArticles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
+					// More Articles
+					if (!TextUtils.isEmpty(webSite.readmore_selector)) {
+						Elements links = doc.select(webSite.readmore_selector);
+						for (Element lnk : links) {
+							moreArticles.add(new ArticleRef(lnk
+									.attr("abs:href"), lnk.text()));
+						}
 					}
+				} else {
+					msg = response.statusMessage();
 				}
 			} catch (Exception ex) {
-				msg = ex.toString();
+				Log.e(TAG, "Error reading article", ex);
+				msg = ex.getMessage();
 			}
 			return null;
 		}
@@ -135,13 +149,12 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 			if (!TextUtils.isEmpty(msg)) {
 				Toast.makeText(Article.this, msg, Toast.LENGTH_SHORT).show();
+				txtArticle.setText(msg);
+			} else {
+				txtArticle.setText(text);
+				play();
 			}
-
 			task = null;
-			txtArticle.setText(text);
-
-			play();
-
 			super.onPostExecute(result);
 		}
 	}
@@ -193,10 +206,12 @@ public class Article extends Activity implements ParrotTTSObserver {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			am.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+			am.adjustStreamVolume(AudioManager.STREAM_SYSTEM,
+					AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
 			return true;
 		case KeyEvent.KEYCODE_DPAD_UP:
-			am.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+			am.adjustStreamVolume(AudioManager.STREAM_SYSTEM,
+					AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
 			return true;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
 		case KeyEvent.KEYCODE_MEDIA_NEXT:
@@ -211,7 +226,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 			return super.onKeyDown(keyCode, event);
 		}
 	}
-	
+
 	@Override
 	public void onTTSFinished() {
 	}

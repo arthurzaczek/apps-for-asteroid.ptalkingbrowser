@@ -6,6 +6,7 @@ import net.zaczek.PTalkingBrowser.Data.DataManager;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
 
+import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -27,7 +28,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class ArticleList extends ListActivity implements ParrotTTSObserver, OnItemSelectedListener {
+public class ArticleList extends ListActivity implements ParrotTTSObserver,
+		OnItemSelectedListener {
 	private static final String TAG = "PTalkingBrowser";
 
 	private static final int DLG_WAIT = 1;
@@ -36,7 +38,7 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 	private static final int EXIT_ID = 2;
 	private ArrayAdapter<ArticleRef> adapter;
 	private ParrotTTSPlayer mTTSPlayer;
-	
+
 	private WebSiteRef webSite;
 
 	/** Called when the activity is first created. */
@@ -47,30 +49,30 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 
 		Intent intent = getIntent();
 		webSite = intent.getParcelableExtra("website");
-		
+
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		getListView().setOnItemSelectedListener(this);
 
 		fillData();
 	}
-	
+
 	@Override
 	protected void onResume() {
-		if(mTTSPlayer != null) mTTSPlayer.destroy();
+		if (mTTSPlayer != null)
+			mTTSPlayer.destroy();
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		super.onResume();
 	}
-	
+
 	@Override
 	protected void onPause() {
 		mTTSPlayer.destroy();
 		super.onPause();
 	}
 
-	
 	@Override
-	public void onItemSelected(AdapterView<?> adapterView, View view,
-			int pos, long id) {
+	public void onItemSelected(AdapterView<?> adapterView, View view, int pos,
+			long id) {
 		try {
 			ArticleRef a = adapter.getItem(pos);
 			mTTSPlayer.play(a.text);
@@ -88,7 +90,7 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, Article.class);
 		ArticleRef a = adapter.getItem(position);
-		i.putExtra("url", a.url);		
+		i.putExtra("url", a.url);
 		i.putExtra("website", webSite);
 		startActivity(i);
 	}
@@ -121,14 +123,21 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 		protected Void doInBackground(Void... params) {
 			try {
 				articles = new ArrayList<ArticleRef>();
-
-				Document doc = DataManager.jsoupConnect(url).get();
-				Elements links = doc.select(webSite.link_selector);
-				for (Element lnk : links) {
-					articles.add(new ArticleRef(lnk.attr("abs:href"), lnk.text()));
+				Response response = DataManager.jsoupConnect(url).execute();
+				int status = response.statusCode();
+				if (status == 200) {
+					Document doc = response.parse();
+					Elements links = doc.select(webSite.link_selector);
+					for (Element lnk : links) {
+						articles.add(new ArticleRef(lnk.attr("abs:href"), lnk
+								.text()));
+					}
+				} else {
+					msg = response.statusMessage();
 				}
 			} catch (Exception ex) {
-				msg = ex.toString();
+				Log.e(TAG, "Error reading article list", ex);
+				msg = ex.getMessage();
 			}
 			return null;
 		}
@@ -138,11 +147,13 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 			dismissDialog(DLG_WAIT);
 
 			if (!TextUtils.isEmpty(msg)) {
-				Toast.makeText(ArticleList.this, msg, Toast.LENGTH_SHORT).show();
+				Toast.makeText(ArticleList.this, msg, Toast.LENGTH_SHORT)
+						.show();
 			}
 
 			task = null;
-			adapter = new ArrayAdapter<ArticleRef>(ArticleList.this, android.R.layout.simple_list_item_1, articles);
+			adapter = new ArrayAdapter<ArticleRef>(ArticleList.this,
+					android.R.layout.simple_list_item_1, articles);
 			setListAdapter(adapter);
 
 			super.onPostExecute(result);
@@ -185,14 +196,14 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver, OnIt
 
 		return super.onMenuItemSelected(featureId, item);
 	}
-	
+
 	@Override
 	public void onTTSFinished() {
-		
+
 	}
 
 	@Override
 	public void onTTSAborted() {
-		
+
 	}
 }
