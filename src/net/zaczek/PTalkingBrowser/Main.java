@@ -87,7 +87,7 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 			if(data.size() == 0) {
 				data.add(new WebSiteRef("Please sync..."));
 			}
-			adapter = new ArrayAdapter<WebSiteRef>(this, android.R.layout.simple_list_item_1, data);
+			adapter = new WebSiteRefAdapter(this, data);
 			setListAdapter(adapter);
 		} catch (Exception ex) {
 			Toast.makeText(this, ex.toString(), Toast.LENGTH_LONG).show();
