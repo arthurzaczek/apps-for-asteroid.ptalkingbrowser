@@ -1,5 +1,7 @@
 package net.zaczek.PTalkingBrowser;
 
+import java.util.ArrayList;
+
 import net.zaczek.PTalkingBrowser.Data.DataManager;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
 import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
@@ -81,7 +83,11 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 
 	private void fillData() {
 		try {
-			adapter = new ArrayAdapter<WebSiteRef>(this, android.R.layout.simple_list_item_1, DataManager.readWebSites());
+			ArrayList<WebSiteRef> data = DataManager.readWebSites();
+			if(data.size() == 0) {
+				data.add(new WebSiteRef("Please sync..."));
+			}
+			adapter = new ArrayAdapter<WebSiteRef>(this, android.R.layout.simple_list_item_1, data);
 			setListAdapter(adapter);
 		} catch (Exception ex) {
 			Toast.makeText(this, ex.toString(), Toast.LENGTH_LONG).show();

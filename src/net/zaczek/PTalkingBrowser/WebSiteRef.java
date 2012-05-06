@@ -6,6 +6,10 @@ import android.os.Parcelable;
 public class WebSiteRef implements Parcelable {
 	public WebSiteRef() {
 	}
+	
+	public WebSiteRef(String text) {
+		this.text = text;
+	}
 
 	public String url;
 	public String text;
