@@ -2,10 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<ListView  
-    android:layout_width="fill_parent" 
-    android:layout_height="fill_parent" 
-    android:id="@id/android:list"    />
+    android:layout_height="fill_parent">
+    <TextView android:id="@+id/lbTitle"
+        android:layout_width="fill_parent"
+        android:textSize="30px"
+        android:paddingLeft="15px"
+        android:layout_height="48px" 
+        android:gravity="center_vertical"
+        android:background="@drawable/toptitlebar3"/>
+	<ListView  
+    	android:layout_width="fill_parent" 
+    	android:layout_height="fill_parent" 
+    	android:id="@id/android:list"    />
 </LinearLayout>

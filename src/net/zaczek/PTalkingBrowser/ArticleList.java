@@ -25,6 +25,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
@@ -40,12 +41,16 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver,
 	private ParrotTTSPlayer mTTSPlayer;
 
 	private WebSiteRef webSite;
+	
+	private TextView lbTitle;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.articlelist);
+		
+		lbTitle = (TextView)findViewById(R.id.lbTitle);
 
 		Intent intent = getIntent();
 		webSite = intent.getParcelableExtra("website");
@@ -96,7 +101,8 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver,
 	}
 
 	private void fillData() {
-		if (task == null) {
+		lbTitle.setText(webSite.text);
+		if (task == null) {			
 			task = new FillDataTask(webSite.url);
 			task.execute();
 		}
