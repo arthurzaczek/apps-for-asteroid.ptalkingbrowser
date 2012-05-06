@@ -38,6 +38,7 @@ public class WebSiteRefAdapter extends ArrayAdapter<WebSiteRef> {
 			}
 
 			if (image != null) {
+				
 			}
 		}
 		return v;
