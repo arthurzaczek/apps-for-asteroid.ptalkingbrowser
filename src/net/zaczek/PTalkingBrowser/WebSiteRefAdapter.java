@@ -15,7 +15,7 @@ public class WebSiteRefAdapter extends ArrayAdapter<WebSiteRef> {
 
 	public WebSiteRefAdapter(Context context,
 			ArrayList<WebSiteRef> websites) {
-		super(context, R.layout.list_item, websites);
+		super(context, R.layout.list_item_websites, websites);
 		this.websites = websites;
 	}
 
@@ -25,7 +25,7 @@ public class WebSiteRefAdapter extends ArrayAdapter<WebSiteRef> {
 		if (v == null) {
 			
 			LayoutInflater vi = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			v = vi.inflate(R.layout.list_item, null);
+			v = vi.inflate(R.layout.list_item_websites, null);
 		}
 
 		WebSiteRef site = websites.get(position);
