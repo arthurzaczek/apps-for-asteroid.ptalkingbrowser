@@ -38,6 +38,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 	private static final int EXIT_ID = 2;
 
 	private TextView txtArticle;
+	private TextView lbTitle;
 	private ParrotTTSPlayer mTTSPlayer = null;
 	private AudioManager am;
 	private WakeLock wl;
@@ -45,6 +46,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 	private StringBuilder text;
 	private ArrayList<ArticleRef> moreArticles;
 	private WebSiteRef webSite;
+	private ArticleRef article;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -57,14 +59,15 @@ public class Article extends Activity implements ParrotTTSObserver {
 				"ListenToPageAndStayAwake");
 
 		txtArticle = (TextView) findViewById(R.id.txtArticle);
+		lbTitle = (TextView) findViewById(R.id.lbTitle);
 
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
 		Intent intent = getIntent();
-		String url = intent.getStringExtra("url");
+		article = intent.getParcelableExtra("article");
 		webSite = intent.getParcelableExtra("website");
-		fillData(url);
+		fillData();
 	}
 
 	@Override
@@ -83,9 +86,9 @@ public class Article extends Activity implements ParrotTTSObserver {
 		super.onPause();
 	}
 
-	private void fillData(String url) {
+	private void fillData() {
 		if (task == null) {
-			task = new FillDataTask(url);
+			task = new FillDataTask();
 			task.execute();
 		}
 	}
@@ -96,11 +99,12 @@ public class Article extends Activity implements ParrotTTSObserver {
 		private String msg;
 		private String url;
 
-		public FillDataTask(String url) {
-			this.url = url;
+		public FillDataTask() {
+			this.url = article.url;
 			text = new StringBuilder();
 			moreArticles = new ArrayList<ArticleRef>();
-			txtArticle.setText("Loading " + url);
+			lbTitle.setText(article.text);
+			txtArticle.setText("Loading " + url);			
 		}
 
 		@Override
@@ -151,7 +155,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 				Toast.makeText(Article.this, msg, Toast.LENGTH_SHORT).show();
 				txtArticle.setText(msg);
 			} else {
-				txtArticle.setText(text);
+				txtArticle.setText(String.format("%d chars", text.length()));
 				play();
 			}
 			task = null;
@@ -206,12 +210,10 @@ public class Article extends Activity implements ParrotTTSObserver {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			am.adjustStreamVolume(AudioManager.STREAM_SYSTEM,
-					AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+			am.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
 			return true;
 		case KeyEvent.KEYCODE_DPAD_UP:
-			am.adjustStreamVolume(AudioManager.STREAM_SYSTEM,
-					AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+			am.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
 			return true;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
 		case KeyEvent.KEYCODE_MEDIA_NEXT:

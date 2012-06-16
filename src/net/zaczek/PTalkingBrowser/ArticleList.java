@@ -95,7 +95,7 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver,
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, Article.class);
 		ArticleRef a = adapter.getItem(position);
-		i.putExtra("url", a.url);
+		i.putExtra("article", a);
 		i.putExtra("website", webSite);
 		startActivity(i);
 	}

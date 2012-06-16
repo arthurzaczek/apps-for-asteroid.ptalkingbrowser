@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:scrollbars="vertical" >
-    <TextView
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <TextView android:id="@+id/lbTitle"
+        android:layout_width="fill_parent"
+        android:textSize="30px"
+        android:paddingLeft="15px"
+        android:layout_height="48px" 
+        android:gravity="center_vertical"
+        android:background="@drawable/toptitlebar3" 
+        android:ellipsize="end"
+        android:singleLine="true"/>
+	<TextView
         android:id="@+id/txtArticle"
+        android:paddingLeft="15px"
+        android:paddingTop="15px"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        android:textSize="30sp" />
-</ScrollView>
+        android:text="2.000 chars"
+        android:textSize="20sp" />
+</LinearLayout>
