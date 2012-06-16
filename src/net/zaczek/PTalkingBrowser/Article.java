@@ -35,7 +35,8 @@ public class Article extends Activity implements ParrotTTSObserver {
 	private static final int DLG_WAIT = 1;
 
 	private static final int ABOUT_ID = 1;
-	private static final int EXIT_ID = 2;
+	private static final int SHOW_TEXT_ID = 2;
+	private static final int EXIT_ID = 3;
 
 	private TextView txtArticle;
 	private TextView lbTitle;
@@ -187,6 +188,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		menu.add(0, ABOUT_ID, 0, "About");
+		menu.add(0, SHOW_TEXT_ID, 0, "Show Text");
 		menu.add(0, EXIT_ID, 0, "Exit");
 		return true;
 	}
@@ -197,6 +199,9 @@ public class Article extends Activity implements ParrotTTSObserver {
 		switch (itemId) {
 		case ABOUT_ID:
 			startActivity(new Intent(this, About.class));
+			return true;
+		case SHOW_TEXT_ID:
+			txtArticle.setText(text);
 			return true;
 		case EXIT_ID:
 			finish();
