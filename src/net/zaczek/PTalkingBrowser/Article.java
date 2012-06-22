@@ -41,7 +41,6 @@ public class Article extends Activity implements ParrotTTSObserver {
 	private TextView txtArticle;
 	private TextView lbTitle;
 	private ParrotTTSPlayer mTTSPlayer = null;
-	private AudioManager am;
 	private WakeLock wl;
 
 	private StringBuilder text;
@@ -63,7 +62,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 		lbTitle = (TextView) findViewById(R.id.lbTitle);
 
 		mTTSPlayer = new ParrotTTSPlayer(this, this);
-		am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
 		Intent intent = getIntent();
 		article = intent.getParcelableExtra("article");
@@ -214,12 +213,6 @@ public class Article extends Activity implements ParrotTTSObserver {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			am.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
-			return true;
-		case KeyEvent.KEYCODE_DPAD_UP:
-			am.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
-			return true;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
 		case KeyEvent.KEYCODE_MEDIA_NEXT:
 			return true;
@@ -230,7 +223,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 		case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
 			return true;
 		default:
-			return super.onKeyDown(keyCode, event);
+			return false;
 		}
 	}
 
