@@ -3,16 +3,12 @@ package net.zaczek.PTalkingBrowser;
 import java.util.ArrayList;
 
 import net.zaczek.PTalkingBrowser.Data.DataManager;
-import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
-import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
-
 import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -29,8 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class ArticleList extends ListActivity implements ParrotTTSObserver,
-		OnItemSelectedListener {
+public class ArticleList extends AbstractListActivity implements OnItemSelectedListener {
 	private static final String TAG = "PTalkingBrowser";
 
 	private static final int DLG_WAIT = 1;
@@ -38,7 +33,6 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver,
 	private static final int ABOUT_ID = 1;
 	private static final int EXIT_ID = 2;
 	private ArrayAdapter<ArticleRef> adapter;
-	private ParrotTTSPlayer mTTSPlayer;
 
 	private WebSiteRef webSite;
 	
@@ -55,24 +49,8 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver,
 		Intent intent = getIntent();
 		webSite = intent.getParcelableExtra("website");
 
-		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		getListView().setOnItemSelectedListener(this);
-
 		fillData();
-	}
-
-	@Override
-	protected void onResume() {
-		if (mTTSPlayer != null)
-			mTTSPlayer.destroy();
-		mTTSPlayer = new ParrotTTSPlayer(this, this);
-		super.onResume();
-	}
-
-	@Override
-	protected void onPause() {
-		mTTSPlayer.destroy();
-		super.onPause();
 	}
 
 	@Override
@@ -201,15 +179,5 @@ public class ArticleList extends ListActivity implements ParrotTTSObserver,
 		}
 
 		return super.onMenuItemSelected(featureId, item);
-	}
-
-	@Override
-	public void onTTSFinished() {
-
-	}
-
-	@Override
-	public void onTTSAborted() {
-
 	}
 }

@@ -3,11 +3,7 @@ package net.zaczek.PTalkingBrowser;
 import java.util.ArrayList;
 
 import net.zaczek.PTalkingBrowser.Data.DataManager;
-import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
-import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
-
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -23,7 +19,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelectedListener {
+public class Main extends AbstractListActivity implements OnItemSelectedListener {
 	private static final String TAG = "PTalkingBrowser";
 
 	private static final int SYNC_ID = 1;
@@ -33,29 +29,14 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 	private static final int DLG_WAIT = 1;
 	
 	private ArrayAdapter<WebSiteRef> adapter;
-	private ParrotTTSPlayer mTTSPlayer;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		getListView().setOnItemSelectedListener(this);
 		fillData();
-	}
-	
-	@Override
-	protected void onResume() {
-		if(mTTSPlayer != null) mTTSPlayer.destroy();
-		mTTSPlayer = new ParrotTTSPlayer(this, this);
-		super.onResume();
-	}
-	
-	@Override
-	protected void onPause() {
-		mTTSPlayer.destroy();
-		super.onPause();
 	}
 	
 	@Override
@@ -171,16 +152,5 @@ public class Main extends ListActivity implements ParrotTTSObserver, OnItemSelec
 			return pDialog;
 		}
 		return null;
-	}
-
-	
-	@Override
-	public void onTTSFinished() {
-		
-	}
-
-	@Override
-	public void onTTSAborted() {
-		
 	}
 }
