@@ -107,17 +107,24 @@ public class ArticleList extends AbstractListActivity implements OnItemSelectedL
 		protected Void doInBackground(Void... params) {
 			try {
 				articles = new ArrayList<ArticleRef>();
+				Log.i(TAG, "Downloading article list from " + url);
 				Response response = DataManager.jsoupConnect(url).execute();
 				int status = response.statusCode();
 				if (status == 200) {
+					Log.i(TAG, "Start parsing");
 					Document doc = response.parse();
 					Elements links = doc.select(webSite.link_selector);
+					Log.i(TAG, "Parsed " + links.size() + " links");
+					String lnkText;
 					for (Element lnk : links) {
-						articles.add(new ArticleRef(lnk.attr("abs:href"), lnk
-								.text()));
+						lnkText = lnk.text();
+						if(!TextUtils.isEmpty(lnkText)) {
+							articles.add(new ArticleRef(lnk.attr("abs:href"), lnkText));
+						}
 					}
 				} else {
 					msg = response.statusMessage();
+					Log.w(TAG, "Error (" + status + "): " + msg);
 				}
 			} catch (Exception ex) {
 				Log.e(TAG, "Error reading article list", ex);

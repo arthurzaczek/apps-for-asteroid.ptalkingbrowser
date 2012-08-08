@@ -74,6 +74,7 @@ public class DataManager {
 	public static org.jsoup.Connection jsoupConnect(String url) {
 		return Jsoup.connect(url)
 			.timeout(TIMEOUT)
+			.followRedirects(true)
 			.header("Connection", "close")
 			.userAgent("Mozilla/5.0 (Linux; U; Android 1.5; AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1");
 	}
