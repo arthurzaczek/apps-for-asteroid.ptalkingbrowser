@@ -3,13 +3,16 @@ package net.zaczek.PTalkingBrowser;
 import java.util.ArrayList;
 
 import net.zaczek.PTalkingBrowser.Data.DataManager;
-import net.zaczek.PTalkingBrowser.tts.ParrotTTSObserver;
-import net.zaczek.PTalkingBrowser.tts.ParrotTTSPlayer;
 
 import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import com.parrot.asteroid.Manager;
+import com.parrot.asteroid.ManagerObserverInterface;
+import com.parrot.asteroid.tts.TTSManager;
+import com.parrot.asteroid.tts.TTSManagerFactory;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -28,7 +31,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Article extends Activity implements ParrotTTSObserver {
+public class Article extends Activity implements ManagerObserverInterface {
 	private static final String TAG = "PTalkingBrowser";
 
 	private static final int DLG_WAIT = 1;
@@ -39,7 +42,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 	private TextView txtArticle;
 	private TextView lbTitle;
-	private ParrotTTSPlayer mTTSPlayer = null;
+	private TTSManager mTTS = null;
 	private WakeLock wl;
 
 	private StringBuilder text;
@@ -60,7 +63,9 @@ public class Article extends Activity implements ParrotTTSObserver {
 		txtArticle = (TextView) findViewById(R.id.txtArticle);
 		lbTitle = (TextView) findViewById(R.id.lbTitle);
 
-		mTTSPlayer = new ParrotTTSPlayer(this, this);
+		mTTS = TTSManagerFactory.getTTSManager(this);
+		mTTS.addManagerObserver(this);
+
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
 		Intent intent = getIntent();
@@ -71,18 +76,23 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 	@Override
 	protected void onResume() {
-		if (mTTSPlayer != null)
-			mTTSPlayer.destroy();
-		mTTSPlayer = new ParrotTTSPlayer(this, this);
 		wl.acquire();
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		mTTSPlayer.destroy();
 		wl.release();
 		super.onPause();
+	}
+
+	@Override
+	protected void onDestroy() {
+		if (mTTS != null) {
+			mTTS.stop();
+			mTTS.deleteManagerObserver(this);
+		}
+		super.onDestroy();
 	}
 
 	private void fillData() {
@@ -103,7 +113,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 			text = new StringBuilder();
 			moreArticles = new ArrayList<ArticleRef>();
 			lbTitle.setText(article.text);
-			txtArticle.setText("Loading " + url);			
+			txtArticle.setText("Loading " + url);
 		}
 
 		@Override
@@ -164,7 +174,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 
 	private void play() {
 		if (text != null) {
-			mTTSPlayer.play(text.toString());
+			mTTS.speak(text.toString(), TTSManager.QUEUE_FLUSH, null);
 		}
 	}
 
@@ -210,11 +220,7 @@ public class Article extends Activity implements ParrotTTSObserver {
 	}
 
 	@Override
-	public void onTTSFinished() {
-	}
-
-	@Override
-	public void onTTSAborted() {
+	public void onManagerReady(boolean arg0, Manager arg1) {
 
 	}
 }

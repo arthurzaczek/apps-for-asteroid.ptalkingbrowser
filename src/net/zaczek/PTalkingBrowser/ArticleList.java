@@ -8,6 +8,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.parrot.asteroid.tts.TTSManager;
+
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -58,7 +60,7 @@ public class ArticleList extends AbstractListActivity implements OnItemSelectedL
 			long id) {
 		try {
 			ArticleRef a = adapter.getItem(pos);
-			mTTSPlayer.play(a.text);
+			mTTS.speak(a.text, TTSManager.QUEUE_FLUSH, null);
 		} catch (Exception ex) {
 			Log.e(TAG, ex.toString());
 		}

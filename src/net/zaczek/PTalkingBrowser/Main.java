@@ -2,6 +2,8 @@ package net.zaczek.PTalkingBrowser;
 
 import java.util.ArrayList;
 
+import com.parrot.asteroid.tts.TTSManager;
+
 import net.zaczek.PTalkingBrowser.Data.DataManager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -19,7 +21,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class Main extends AbstractListActivity implements OnItemSelectedListener {
+public class Main extends AbstractListActivity implements
+		OnItemSelectedListener {
 	private static final String TAG = "PTalkingBrowser";
 
 	private static final int SYNC_ID = 1;
@@ -27,8 +30,9 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 	private static final int EXIT_ID = 3;
 
 	private static final int DLG_WAIT = 1;
-	
+
 	private ArrayAdapter<WebSiteRef> adapter;
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -38,12 +42,12 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 		getListView().setOnItemSelectedListener(this);
 		fillData();
 	}
-	
+
 	@Override
-	public void onItemSelected(AdapterView<?> adapterView, View view,
-			int pos, long id) {
+	public void onItemSelected(AdapterView<?> adapterView, View view, int pos,
+			long id) {
 		try {
-			mTTSPlayer.play(adapter.getItem(pos).text);
+			mTTS.speak(adapter.getItem(pos).text, TTSManager.QUEUE_FLUSH, null);
 		} catch (Exception ex) {
 			Log.e(TAG, ex.toString());
 		}
@@ -53,7 +57,7 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 	public void onNothingSelected(AdapterView<?> arg0) {
 
 	}
-	
+
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Intent i = new Intent(this, ArticleList.class);
@@ -65,7 +69,7 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 	private void fillData() {
 		try {
 			ArrayList<WebSiteRef> data = DataManager.readWebSites();
-			if(data.size() == 0) {
+			if (data.size() == 0) {
 				data.add(new WebSiteRef("Please sync..."));
 			}
 			adapter = new WebSiteRefAdapter(this, data);
@@ -74,7 +78,7 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 			Toast.makeText(this, ex.toString(), Toast.LENGTH_LONG).show();
 		}
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -101,7 +105,7 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 
 		return super.onMenuItemSelected(featureId, item);
 	}
-	
+
 	private class SyncTask extends AsyncTask<Void, Void, Void> {
 		private String msg;
 
@@ -142,7 +146,7 @@ public class Main extends AbstractListActivity implements OnItemSelectedListener
 			syncTask.execute();
 		}
 	}
-	
+
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
